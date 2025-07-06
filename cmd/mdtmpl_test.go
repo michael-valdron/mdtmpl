@@ -17,24 +17,22 @@ func TestParseConfig(t *testing.T) {
 	}{
 		{
 			name: "simple",
-			tmpl: `<!--- {{ "hello!" | toUpper | repeat 5 }} --->`,
-			exp: `<!--- {{ "hello!" | toUpper | repeat 5 }} --->
-HELLO!HELLO!HELLO!HELLO!HELLO!
+			tmpl: `{{ "hello!" | toUpper | repeat 5 }}`,
+			exp: `HELLO!HELLO!HELLO!HELLO!HELLO!
 `,
 		},
 		{
 			name: "exec",
-			tmpl: `<!--- {{ exec "echo hallo" | repeat 3 | truncate }} --->`,
-			exp: `<!--- {{ exec "echo hallo" | repeat 3 | truncate }} --->
-hallo
+			tmpl: `{{ exec "echo hallo" | repeat 3 | truncate }}`,
+			exp: `hallo
 hallo
 hallo
 `,
 		},
 		{
 			name: "fle",
-			tmpl: `<!--- {{ file "testdata/cfg.yml" | code "yml" }} --->`,
-			exp: `<!--- {{ file "testdata/cfg.yml" | code "yml" }} --->` + "\n```yml" + `
+			tmpl: `{{ file "testdata/cfg.yml" | code "yml" }}`,
+			exp: "```yml" + `
 settings:
   cfg: true
 
@@ -42,16 +40,14 @@ settings:
 		},
 		{
 			name: "tmpl",
-			tmpl: `<!--- {{ tmpl "testdata/tmpl.tmpl" | truncate }} --->`,
-			exp: `<!--- {{ tmpl "testdata/tmpl.tmpl" | truncate }} --->
-This is a test template
+			tmpl: `{{ tmpl "testdata/tmpl.tmpl" | truncate }}`,
+			exp: `This is a test template
 `,
 		},
 		{
 			name: "tmplWithVars",
-			tmpl: `<!--- {{ tmplWithVars "testdata/template.tmpl" (file "./testdata/values.yml" | fromYAML) }} --->`,
-			exp: `<!--- {{ tmplWithVars "testdata/template.tmpl" (file "./testdata/values.yml" | fromYAML) }} --->
-username=admin
+			tmpl: `{{ tmplWithVars "testdata/template.tmpl" (file "./testdata/values.yml" | fromYAML) }}`,
+			exp: `username=admin
 password=password
 
 `,

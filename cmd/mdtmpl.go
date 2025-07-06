@@ -7,7 +7,6 @@ import (
 	"io"
 	"log"
 	"os"
-	"regexp"
 
 	"github.com/FalcoSuessgott/mdtmpl/pkg/template"
 	"github.com/caarlos0/env/v11"
@@ -19,8 +18,6 @@ const (
 	defaultTemplateFile = "README.md.tmpl"
 	defaultOutputFile   = "README.md"
 )
-
-const commentRegex = `<!---\s*(.*?)\s*--->`
 
 var Version string
 
@@ -41,7 +38,7 @@ func defaultOpts() *Options {
 }
 
 var initTemplate = `# ToC
-<!--- {{ toc }} --->
+{{ toc }}
 `
 
 // nolint: cyclop, funlen
@@ -130,29 +127,19 @@ func Execute() error {
 func parse(r io.Reader, opts ...template.RendererOptions) ([]byte, error) {
 	var resultFile bytes.Buffer
 
-	re := regexp.MustCompile(commentRegex)
-
 	ln := 1
 
 	scanner := bufio.NewScanner(r)
 	for scanner.Scan() {
-		if re.MatchString(scanner.Text()) {
-			resultFile.Write(scanner.Bytes())
-			resultFile.WriteString("\n")
+		b := scanner.Bytes()
 
-			b := regexp.MustCompile(commentRegex).FindStringSubmatch(scanner.Text())[1]
-
-			result, err := template.Render([]byte(b), nil, opts...)
-			if err != nil {
-				return nil, fmt.Errorf("cannot render template at line %d: %w", ln, err)
-			}
-
-			resultFile.Write(result.Bytes())
-			resultFile.WriteString("\n")
-		} else {
-			resultFile.Write(scanner.Bytes())
-			resultFile.WriteString("\n")
+		result, err := template.Render([]byte(b), nil, opts...)
+		if err != nil {
+			return nil, fmt.Errorf("cannot render template at line %d: %w", ln, err)
 		}
+
+		resultFile.Write(result.Bytes())
+		resultFile.WriteString("\n")
 
 		ln++
 	}
