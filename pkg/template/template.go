@@ -9,8 +9,10 @@ import (
 	"os/exec"
 	"path/filepath"
 	"regexp"
+	"slices"
 	"strings"
 	"text/template"
+	"text/template/parse"
 
 	"github.com/FalcoSuessgott/mdtmpl/pkg/commit"
 	"github.com/Masterminds/semver/v3"
@@ -159,20 +161,48 @@ func WithTemplateFile(f string) RendererOptions {
 // Render renders the given content using the sprig template functions.
 // nolint: funlen, cyclop
 func Render(content []byte, vars interface{}, opts ...RendererOptions) (bytes.Buffer, error) {
-	var r Renderer
-
 	handler := sprout.New()
 	if err := handler.AddGroups(all.RegistryGroup()); err != nil {
 		return bytes.Buffer{}, fmt.Errorf("failed to add sprout groups: %w", err)
 	}
 
+	var buf bytes.Buffer
+
+	tpl, err := newTemplate(content, handler, opts...)
+	if err != nil {
+		return buf, err
+	}
+
+	if err := tpl.Execute(&buf, vars); err != nil {
+		return buf, err
+	}
+
+	return buf, nil
+}
+
+// Determines if content has template statements
+func ContainsTemplateActions(content []byte, opts ...RendererOptions) (bool, error) {
+	handler := sprout.New()
+	if err := handler.AddGroups(all.RegistryGroup()); err != nil {
+		return false, fmt.Errorf("failed to add sprout groups: %w", err)
+	}
+
+	tpl, err := newTemplate(content, handler, opts...)
+	if err != nil {
+		return false, err
+	}
+
+	return containsTemplateActions(tpl.Tree.Root), nil
+}
+
+func newTemplate(content []byte, handler *sprout.DefaultHandler, opts ...RendererOptions) (*template.Template, error) {
+	var r Renderer
+
 	for _, opt := range opts {
 		opt(&r)
 	}
 
-	var buf bytes.Buffer
-
-	tpl, err := template.New("template").
+	return template.New("template").
 		Option("missingkey=error").
 		Funcs(handler.Build()).
 		Funcs(funcMap).
@@ -241,13 +271,17 @@ func Render(content []byte, vars interface{}, opts ...RendererOptions) (bytes.Bu
 			},
 		}).
 		Parse(string(content))
-	if err != nil {
-		return buf, err
-	}
+}
 
-	if err := tpl.Execute(&buf, vars); err != nil {
-		return buf, err
+func containsTemplateActions(n parse.Node) bool {
+	switch node := n.(type) {
+	case *parse.ListNode:
+		if slices.ContainsFunc(node.Nodes, containsTemplateActions) {
+			return true
+		}
+	case *parse.ActionNode, *parse.IfNode, *parse.RangeNode,
+		*parse.WithNode, *parse.TemplateNode, *parse.BranchNode:
+		return true
 	}
-
-	return buf, nil
+	return false
 }

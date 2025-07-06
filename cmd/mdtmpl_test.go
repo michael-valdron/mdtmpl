@@ -56,6 +56,12 @@ password=password
 
 `,
 		},
+		{
+			name: "regularComment",
+			tmpl: `<!--- regular comment --->`,
+			exp: `<!--- regular comment --->
+`,
+		},
 	}
 
 	for _, tc := range testCases {

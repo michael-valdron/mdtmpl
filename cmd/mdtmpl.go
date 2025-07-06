@@ -140,9 +140,16 @@ func parse(r io.Reader, opts ...template.RendererOptions) ([]byte, error) {
 			resultFile.Write(scanner.Bytes())
 			resultFile.WriteString("\n")
 
-			b := regexp.MustCompile(commentRegex).FindStringSubmatch(scanner.Text())[1]
+			b := []byte(regexp.MustCompile(commentRegex).FindStringSubmatch(scanner.Text())[1])
 
-			result, err := template.Render([]byte(b), nil, opts...)
+			if containsActions, err := template.ContainsTemplateActions(b, opts...); err != nil {
+				return nil, err
+			} else if !containsActions {
+				ln++
+				continue
+			}
+
+			result, err := template.Render(b, nil, opts...)
 			if err != nil {
 				return nil, fmt.Errorf("cannot render template at line %d: %w", ln, err)
 			}
