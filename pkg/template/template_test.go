@@ -133,6 +133,7 @@ echo hallo
 	}
 }
 
+// nolint: funlen
 func TestTemplateStatements(t *testing.T) {
 	testcases := []struct {
 		name string

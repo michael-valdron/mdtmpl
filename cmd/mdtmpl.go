@@ -146,6 +146,7 @@ func parse(r io.Reader, opts ...template.RendererOptions) ([]byte, error) {
 				return nil, err
 			} else if !containsActions {
 				ln++
+
 				continue
 			}
 

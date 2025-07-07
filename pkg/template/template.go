@@ -180,7 +180,7 @@ func Render(content []byte, vars interface{}, opts ...RendererOptions) (bytes.Bu
 	return buf, nil
 }
 
-// Determines if content has template statements
+// Determines if content has template statements.
 func ContainsTemplateActions(content []byte, opts ...RendererOptions) (bool, error) {
 	handler := sprout.New()
 	if err := handler.AddGroups(all.RegistryGroup()); err != nil {
@@ -195,6 +195,7 @@ func ContainsTemplateActions(content []byte, opts ...RendererOptions) (bool, err
 	return containsTemplateActions(tpl.Tree.Root), nil
 }
 
+// nolint: funlen
 func newTemplate(content []byte, handler *sprout.DefaultHandler, opts ...RendererOptions) (*template.Template, error) {
 	var r Renderer
 
@@ -283,5 +284,6 @@ func containsTemplateActions(n parse.Node) bool {
 		*parse.WithNode, *parse.TemplateNode, *parse.BranchNode:
 		return true
 	}
+
 	return false
 }
