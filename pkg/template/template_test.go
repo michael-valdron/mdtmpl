@@ -115,6 +115,12 @@ echo hallo
 
 </details>`,
 		},
+		{
+			name: "join",
+			tmpl: `{{ join .nums " " }}`,
+			vars: map[string]interface{}{"nums": []string{"1", "3", "4", "1", "2"}},
+			exp:  `1 3 4 1 2`,
+		},
 	}
 
 	for _, tc := range testcases {

@@ -144,6 +144,7 @@ var funcMap template.FuncMap = map[string]any{
 	"collapsile": func(summary, content string) string {
 		return fmt.Sprintf("<details>\n<summary>%s</summary>\n\n%s\n\n</details>", summary, content)
 	},
+	"join": strings.Join,
 }
 
 type RendererOptions func(*Renderer)
